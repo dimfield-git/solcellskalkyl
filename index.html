@@ -1,0 +1,1013 @@
+<!DOCTYPE html>
+<html lang="sv">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Solcellskalkyl — Flerbostadshus</title>
+<style>
+  /* ── Theme: Nordisk Energi (default) ── */
+  :root {
+    --bg: #F5F5F5;
+    --bg-card: #FFFFFF;
+    --primary: #1B3A4B;
+    --primary-light: #2a5468;
+    --accent: #E8B630;
+    --accent-light: #f0cc6a;
+    --highlight: #D4EDDA;
+    --highlight-border: #88c999;
+    --text: #2D2D2D;
+    --text-muted: #6B7280;
+    --border: #D1D5DB;
+    --input-bg: #FFFFFF;
+    --table-header-bg: var(--primary);
+    --table-header-text: #FFFFFF;
+    --table-stripe: #f9fafb;
+    --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.1), 0 2px 4px rgba(0,0,0,0.06);
+    --radius: 8px;
+    --radius-lg: 12px;
+    --error: #DC2626;
+  }
+
+  /* ── Theme: Solcell ── */
+  [data-theme="solcell"] {
+    --bg: #FFFFFF;
+    --bg-card: #FFFFFF;
+    --primary: #2E7D32;
+    --primary-light: #43a047;
+    --accent: #F4A535;
+    --accent-light: #f7bc64;
+    --highlight: #FFF3E0;
+    --highlight-border: #f4a535;
+    --text: #333333;
+    --text-muted: #6B7280;
+    --border: #D1D5DB;
+    --table-stripe: #f1f8e9;
+  }
+
+  /* ── Theme: Blueprint ── */
+  [data-theme="blueprint"] {
+    --bg: #FAFBFC;
+    --bg-card: #FFFFFF;
+    --primary: #37474F;
+    --primary-light: #546e7a;
+    --accent: #0097A7;
+    --accent-light: #26c6da;
+    --highlight: #E0F7FA;
+    --highlight-border: #0097A7;
+    --text: #37474F;
+    --text-muted: #78909C;
+    --border: #CFD8DC;
+    --table-stripe: #f5f7f8;
+  }
+
+  /* ── Theme: Koppar ── */
+  [data-theme="koppar"] {
+    --bg: #FAF8F5;
+    --bg-card: #FFFFFF;
+    --primary: #6B3A2A;
+    --primary-light: #8B5A4A;
+    --accent: #C17F4E;
+    --accent-light: #d4a070;
+    --highlight: #FDF0E2;
+    --highlight-border: #C17F4E;
+    --text: #3B2F2F;
+    --text-muted: #7D6B6B;
+    --border: #D9CFC5;
+    --table-stripe: #faf6f2;
+  }
+
+  /* ── Theme: Lövverk ── */
+  [data-theme="lovverk"] {
+    --bg: #F4F7F2;
+    --bg-card: #FFFFFF;
+    --primary: #3D6B4F;
+    --primary-light: #5A8A6A;
+    --accent: #A8C256;
+    --accent-light: #bdd474;
+    --highlight: #E8F0DC;
+    --highlight-border: #8aaf3e;
+    --text: #2C3E2D;
+    --text-muted: #6B7F6C;
+    --border: #C5D4C0;
+    --table-stripe: #f0f5ec;
+  }
+
+  /* ── Theme: Midnatt ── */
+  [data-theme="midnatt"] {
+    --bg: #1A1D23;
+    --bg-card: #242830;
+    --primary: #7EB8DA;
+    --primary-light: #9acae6;
+    --accent: #F0C754;
+    --accent-light: #f5d87a;
+    --highlight: #2A3A2E;
+    --highlight-border: #5a9a6a;
+    --text: #E0E0E0;
+    --text-muted: #8B92A0;
+    --border: #363B44;
+    --input-bg: #2C3038;
+    --table-header-text: #1A1D23;
+    --table-stripe: #20242a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  /* ── Theme: Grafit ── */
+  [data-theme="grafit"] {
+    --bg: #1E1E22;
+    --bg-card: #28282E;
+    --primary: #A0D4A0;
+    --primary-light: #b8e0b8;
+    --accent: #E8A445;
+    --accent-light: #f0be6e;
+    --highlight: #2E3828;
+    --highlight-border: #6aaa6a;
+    --text: #D8D8D8;
+    --text-muted: #888890;
+    --border: #3A3A42;
+    --input-bg: #303036;
+    --table-header-text: #1E1E22;
+    --table-stripe: #24242a;
+    --shadow: 0 1px 3px rgba(0,0,0,0.3);
+    --shadow-lg: 0 4px 12px rgba(0,0,0,0.4);
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    line-height: 1.6;
+    transition: background 0.3s ease, color 0.3s ease;
+  }
+
+  .container {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 24px 20px 60px;
+  }
+
+  /* ── Theme Switcher ── */
+  .theme-bar {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 6px;
+    padding: 16px 0 8px;
+    flex-wrap: wrap;
+  }
+
+  .theme-divider {
+    width: 1px;
+    height: 28px;
+    background: var(--border);
+    margin: 0 8px;
+  }
+
+  .theme-btn {
+    display: flex;
+    align-items: center;
+    gap: 7px;
+    padding: 7px 14px;
+    border: 2px solid var(--border);
+    border-radius: 100px;
+    background: var(--bg-card);
+    color: var(--text);
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    letter-spacing: 0.01em;
+  }
+
+  .theme-btn:hover {
+    border-color: var(--primary);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+
+  .theme-btn.active {
+    border-color: var(--primary);
+    background: var(--primary);
+    color: var(--table-header-text, #fff);
+  }
+
+  .theme-dot {
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    border: 1px solid rgba(0,0,0,0.1);
+  }
+
+  /* ── Header ── */
+  .header {
+    text-align: center;
+    padding: 32px 0 12px;
+  }
+
+  .header h1 {
+    font-size: 28px;
+    font-weight: 700;
+    color: var(--primary);
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .header p {
+    font-size: 15px;
+    color: var(--text-muted);
+    max-width: 520px;
+    margin: 0 auto;
+  }
+
+  /* ── Cards ── */
+  .card {
+    background: var(--bg-card);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 28px 32px;
+    margin-bottom: 20px;
+    box-shadow: var(--shadow);
+    transition: background 0.3s ease, border-color 0.3s ease, box-shadow 0.3s ease;
+  }
+
+  .card-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: var(--primary);
+    margin-bottom: 20px;
+    padding-bottom: 10px;
+    border-bottom: 2px solid var(--accent);
+    display: inline-block;
+  }
+
+  /* ── Form Grid ── */
+  .form-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px 28px;
+  }
+
+  .form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 5px;
+  }
+
+  .form-group label {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text);
+    display: flex;
+    align-items: center;
+    gap: 4px;
+  }
+
+  .unit {
+    font-weight: 400;
+    color: var(--text-muted);
+    font-size: 12px;
+  }
+
+  .help-text {
+    font-size: 11.5px;
+    color: var(--text-muted);
+    font-style: italic;
+    margin-top: -2px;
+  }
+
+  input[type="text"] {
+    width: 100%;
+    padding: 10px 14px;
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-family: "SF Mono", "Cascadia Mono", "Consolas", "DejaVu Sans Mono", monospace;
+    font-size: 14px;
+    color: var(--text);
+    background: var(--input-bg);
+    transition: border-color 0.2s, box-shadow 0.2s, background 0.3s;
+  }
+
+  input:focus {
+    outline: none;
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(232, 182, 48, 0.15);
+  }
+
+  input.input-error {
+    border-color: var(--error);
+    box-shadow: 0 0 0 3px rgba(220, 38, 38, 0.1);
+  }
+
+  .error-msg {
+    font-size: 11px;
+    color: var(--error);
+    display: none;
+  }
+
+  .error-msg.visible {
+    display: block;
+  }
+
+  .computed-row {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: var(--bg);
+    border: 1.5px dashed var(--border);
+    border-radius: var(--radius);
+    font-family: "SF Mono", "Cascadia Mono", "Consolas", "DejaVu Sans Mono", monospace;
+    font-size: 14px;
+    color: var(--text-muted);
+    min-height: 42px;
+    transition: background 0.3s, border-color 0.3s;
+  }
+
+  .computed-label {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+
+  /* ── Buttons ── */
+  .actions {
+    display: flex;
+    justify-content: center;
+    gap: 12px;
+    padding: 8px 0 0;
+  }
+
+  .btn-primary {
+    padding: 14px 48px;
+    background: var(--primary);
+    color: var(--table-header-text, #fff);
+    border: none;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-primary:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-lg);
+  }
+
+  .btn-primary:active { transform: translateY(0); }
+
+  .btn-secondary {
+    padding: 14px 32px;
+    background: transparent;
+    color: var(--text-muted);
+    border: 1.5px solid var(--border);
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-secondary:hover {
+    border-color: var(--primary);
+    color: var(--primary);
+  }
+
+  .btn-reset:hover {
+    border-color: var(--error) !important;
+    color: var(--error) !important;
+  }
+
+  /* ── Results ── */
+  #results { display: none; }
+
+  #results.visible {
+    display: block;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  .results-actions {
+    display: flex;
+    justify-content: flex-end;
+    margin-bottom: 12px;
+    gap: 10px;
+  }
+
+  .btn-export {
+    padding: 8px 20px;
+    background: var(--primary);
+    color: var(--table-header-text, #fff);
+    border: none;
+    border-radius: var(--radius);
+    font-family: inherit;
+    font-size: 13px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s;
+  }
+
+  .btn-export:hover {
+    background: var(--primary-light);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow);
+  }
+
+  /* ── Summary Grid ── */
+  .summary-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .summary-item {
+    padding: 18px 20px;
+    background: var(--bg);
+    border-radius: var(--radius);
+    border-left: 4px solid var(--accent);
+    transition: background 0.3s;
+  }
+
+  .summary-item.highlight-item {
+    border-left-color: var(--highlight-border);
+    background: var(--highlight);
+  }
+
+  .summary-label {
+    font-size: 12px;
+    font-weight: 600;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    margin-bottom: 4px;
+  }
+
+  .summary-value {
+    font-family: "SF Mono", "Cascadia Mono", "Consolas", "DejaVu Sans Mono", monospace;
+    font-size: 20px;
+    font-weight: 500;
+    color: var(--primary);
+  }
+
+  .summary-unit {
+    font-size: 13px;
+    color: var(--text-muted);
+    font-weight: 400;
+  }
+
+  /* ── Table ── */
+  .table-wrap {
+    overflow-x: auto;
+    border-radius: var(--radius-lg);
+    border: 1px solid var(--border);
+  }
+
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  thead th {
+    background: var(--table-header-bg);
+    color: var(--table-header-text);
+    padding: 12px 14px;
+    text-align: right;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.02em;
+    position: sticky;
+    top: 0;
+  }
+
+  thead th:first-child { text-align: center; }
+
+  tbody td {
+    padding: 10px 14px;
+    text-align: right;
+    font-family: "SF Mono", "Cascadia Mono", "Consolas", "DejaVu Sans Mono", monospace;
+    font-size: 12.5px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  tbody td:first-child {
+    text-align: center;
+    font-weight: 600;
+    font-family: inherit;
+  }
+
+  tbody tr:nth-child(even) { background: var(--table-stripe); }
+
+  tbody tr.payback-row {
+    background: var(--highlight) !important;
+    font-weight: 600;
+  }
+
+  tbody tr.payback-row td {
+    border-bottom-color: var(--highlight-border);
+  }
+
+  .co2-ref {
+    font-size: 11px;
+    color: var(--text-muted);
+    text-align: right;
+    margin-top: 10px;
+    font-style: italic;
+  }
+
+  .footer {
+    text-align: center;
+    padding: 32px 0 0;
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ── Print / PDF ── */
+  @media print {
+    body { background: #fff !important; color: #222 !important; font-size: 11px; }
+    .theme-bar, .header, .card:not(.result-card), .actions, .footer, .results-actions, .btn-export { display: none !important; }
+    #results { display: block !important; }
+    #results .card { box-shadow: none; border: 1px solid #ccc; break-inside: avoid; }
+    .summary-item { background: #f5f5f5 !important; border-left-color: #888 !important; }
+    .summary-item.highlight-item { background: #e8f5e9 !important; border-left-color: #4caf50 !important; }
+    .summary-value { color: #222 !important; }
+    thead th { background: #333 !important; color: #fff !important; }
+    tbody tr.payback-row { background: #e8f5e9 !important; }
+    tbody tr.payback-row td { border-bottom-color: #4caf50 !important; }
+    .print-header { display: block !important; text-align: center; margin-bottom: 16px; }
+    .print-header h2 { font-size: 18px; margin-bottom: 4px; }
+    .print-header p { font-size: 11px; color: #666; }
+    .print-params { display: block !important; margin-bottom: 16px; font-size: 11px; }
+    .print-params table { width: 100%; border-collapse: collapse; }
+    .print-params td { padding: 3px 10px; border-bottom: 1px solid #ddd; }
+    .print-params td:first-child { font-weight: 600; width: 50%; }
+  }
+
+  .print-header, .print-params { display: none; }
+
+  /* ── Responsive ── */
+  @media (max-width: 700px) {
+    .form-grid { grid-template-columns: 1fr; }
+    .summary-grid { grid-template-columns: 1fr 1fr; }
+    .container { padding: 16px 12px 40px; }
+    .card { padding: 20px 16px; }
+    .actions { flex-direction: column; align-items: stretch; }
+    .btn-primary, .btn-secondary { text-align: center; }
+    .theme-bar { gap: 4px; }
+    .theme-btn { padding: 6px 10px; font-size: 11px; }
+    .theme-divider { margin: 0 4px; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+  <!-- Theme Switcher -->
+  <div class="theme-bar">
+    <button class="theme-btn active" onclick="setTheme('nordisk')" data-theme-btn="nordisk">
+      <span class="theme-dot" style="background:#1B3A4B;"></span> Nordisk Energi
+    </button>
+    <button class="theme-btn" onclick="setTheme('solcell')" data-theme-btn="solcell">
+      <span class="theme-dot" style="background:#2E7D32;"></span> Solcell
+    </button>
+    <button class="theme-btn" onclick="setTheme('blueprint')" data-theme-btn="blueprint">
+      <span class="theme-dot" style="background:#0097A7;"></span> Blueprint
+    </button>
+    <button class="theme-btn" onclick="setTheme('koppar')" data-theme-btn="koppar">
+      <span class="theme-dot" style="background:#6B3A2A;"></span> Koppar
+    </button>
+    <button class="theme-btn" onclick="setTheme('lovverk')" data-theme-btn="lovverk">
+      <span class="theme-dot" style="background:#3D6B4F;"></span> Lövverk
+    </button>
+    <div class="theme-divider"></div>
+    <button class="theme-btn" onclick="setTheme('midnatt')" data-theme-btn="midnatt">
+      <span class="theme-dot" style="background:#1A1D23; border-color:rgba(255,255,255,0.2);"></span> Midnatt
+    </button>
+    <button class="theme-btn" onclick="setTheme('grafit')" data-theme-btn="grafit">
+      <span class="theme-dot" style="background:#1E1E22; border-color:rgba(255,255,255,0.2);"></span> Grafit
+    </button>
+  </div>
+
+  <!-- Header -->
+  <div class="header">
+    <h1>☀ Solcellskalkyl</h1>
+    <p>Ekonomisk investeringsanalys för solceller till flerbostadshus — 30-årsberäkning</p>
+  </div>
+
+  <!-- Offertdata -->
+  <div class="card">
+    <div class="card-title">Offertdata</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Total installerad effekt <span class="unit">(kWp)</span></label>
+        <input type="text" id="kwp" inputmode="decimal" placeholder="t.ex. 50">
+      </div>
+      <div class="form-group">
+        <label>Specifik årsproduktion <span class="unit">(kWh/kWp)</span></label>
+        <input type="text" id="spec" inputmode="decimal" data-default="950" placeholder="950">
+      </div>
+      <div class="form-group">
+        <label>Förväntad årsproduktion <span class="unit">(kWh)</span></label>
+        <input type="text" id="prod" inputmode="numeric" placeholder="Beräknas automatiskt">
+        <span class="error-msg" id="prod-error"></span>
+      </div>
+      <div class="form-group">
+        <label>Investeringskostnad <span class="unit">(kr)</span></label>
+        <input type="text" id="invest" inputmode="numeric" placeholder="Inkl. moms">
+        <span class="help-text">Bör inkludera moms och eventuella arvoden</span>
+        <span class="error-msg" id="invest-error"></span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Årsredovisningsdata -->
+  <div class="card">
+    <div class="card-title">Årsredovisningsdata</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>Total förbrukning <span class="unit">(kWh)</span></label>
+        <input type="text" id="consumption" inputmode="numeric" placeholder="t.ex. 150 000">
+        <span class="help-text">Ange total förväntad förbrukning, inklusive lägenhetsförbrukning för IMD m.m.</span>
+        <span class="error-msg" id="consumption-error"></span>
+      </div>
+      <div class="form-group">
+        <label>Elpris, inköp <span class="unit">(kr/kWh)</span></label>
+        <input type="text" id="priceIn" inputmode="decimal" data-default="1,80" placeholder="1,80">
+      </div>
+      <div class="form-group">
+        <label>Försäljningspris el <span class="unit">(kr/kWh)</span></label>
+        <input type="text" id="priceOut" inputmode="decimal" data-default="0,50" placeholder="0,50">
+      </div>
+    </div>
+  </div>
+
+  <!-- Beräknade parametrar -->
+  <div class="card">
+    <div class="card-title">Beräknade parametrar</div>
+    <div class="form-grid">
+      <div class="form-group">
+        <label>E_tillgodo <span class="unit">(%)</span></label>
+        <input type="text" id="eTillgodo" inputmode="decimal" placeholder="Beräknas automatiskt">
+        <span class="help-text">Andel egenproducerad el som tillgodoser föreningens behov. Modell: 1 − e<sup>−C/P</sup></span>
+        <span class="error-msg" id="eTillgodo-error"></span>
+      </div>
+      <div class="form-group">
+        <label>E_sälj <span class="unit">(%)</span></label>
+        <div class="computed-row" id="eSaljDisplay">—</div>
+        <span class="computed-label">Auto: 100% − E_tillgodo</span>
+      </div>
+      <div class="form-group">
+        <label>Elprisinflation <span class="unit">(%/år)</span></label>
+        <input type="text" id="inflation" inputmode="decimal" data-default="3,0" placeholder="3,0">
+      </div>
+      <div class="form-group">
+        <label>Degradering vid 25 år <span class="unit">(%)</span></label>
+        <input type="text" id="degradation" inputmode="decimal" data-default="85" placeholder="85">
+        <span class="help-text">Kvarvarande effekt vid år 25. Linjär regression, extrapoleras till 30 år.</span>
+      </div>
+    </div>
+  </div>
+
+  <!-- Buttons -->
+  <div class="actions">
+    <button class="btn-primary" onclick="calculate()">Beräkna kalkyl</button>
+    <button class="btn-secondary btn-reset" onclick="resetAll()">Rensa</button>
+  </div>
+
+  <!-- Results -->
+  <div id="results">
+
+    <!-- Print-only header -->
+    <div class="print-header">
+      <h2>☀ Solcellskalkyl — Flerbostadshus</h2>
+      <p>Ekonomisk investeringsanalys, 30 år</p>
+    </div>
+
+    <!-- Print-only parameters -->
+    <div class="print-params" id="printParams"></div>
+
+    <div class="results-actions">
+      <button class="btn-export" onclick="exportPDF()">⬇ Exportera PDF</button>
+    </div>
+
+    <div class="card result-card" style="margin-top: 0;">
+      <div class="card-title">Resultat — Sammanfattning</div>
+      <div class="summary-grid" id="summaryGrid"></div>
+      <p class="co2-ref">CO₂-referens: Svensk residualmix, ca 80 g CO₂/kWh (0,08 ton/MWh). Källa: Energimyndigheten.</p>
+    </div>
+
+    <div class="card result-card">
+      <div class="card-title">Resultat — Årstabell (30 år)</div>
+      <div class="table-wrap">
+        <table>
+          <thead>
+            <tr>
+              <th>År</th>
+              <th>Pris Inköp (kr/kWh)</th>
+              <th>Försäljn.pris (kr/kWh)</th>
+              <th>Årsproduktion (kWh)</th>
+              <th>Egenproduktion (kWh)</th>
+              <th>Överskott (kWh)</th>
+              <th>Årlig Intäkt (kr)</th>
+              <th>Årlig Avkastn. (%)</th>
+              <th>Nettokassaflöde (kr)</th>
+            </tr>
+          </thead>
+          <tbody id="tableBody"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+  <div class="footer">
+    Solcellskalkyl för flerbostadshus — Enkel modell v1.2 — 2025
+  </div>
+
+</div>
+
+<script>
+  // ═══════════════════════════════════════════
+  // Swedish Number Formatting
+  // ═══════════════════════════════════════════
+
+  function parseSwedish(str) {
+    if (!str || typeof str !== 'string') return NaN;
+    return parseFloat(str.replace(/\s/g, '').replace(',', '.'));
+  }
+
+  function fmtSv(n, decimals) {
+    if (isNaN(n)) return '';
+    const fixed = n.toFixed(decimals);
+    const [intPart, decPart] = fixed.split('.');
+    const sign = intPart.startsWith('-') ? '−' : '';
+    const digits = intPart.replace('-', '');
+    const grouped = digits.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    return decimals > 0 && decPart !== undefined
+      ? sign + grouped + ',' + decPart
+      : sign + grouped;
+  }
+
+  function formatInputOnBlur(input, decimals) {
+    const val = parseSwedish(input.value);
+    if (!isNaN(val) && input.value.trim() !== '') {
+      input.value = fmtSv(val, decimals);
+    }
+  }
+
+  function stripFormatOnFocus(input) {
+    if (input.value.trim() !== '') {
+      input.value = input.value.replace(/\s/g, '');
+    }
+    input.select();
+  }
+
+  function getVal(id) { return parseSwedish(document.getElementById(id).value); }
+  function setVal(id, num, decimals) { document.getElementById(id).value = fmtSv(num, decimals); }
+
+  // ═══════════════════════════════════════════
+  // Field Config + Init
+  // ═══════════════════════════════════════════
+
+  const fieldConfig = {
+    kwp:         { decimals: 1, triggers: ['autoCalcProd'] },
+    spec:        { decimals: 0, triggers: ['autoCalcProd'] },
+    prod:        { decimals: 0, triggers: ['autoCalcSelfConsumption'] },
+    invest:      { decimals: 0, triggers: [] },
+    consumption: { decimals: 0, triggers: ['autoCalcSelfConsumption'] },
+    priceIn:     { decimals: 2, triggers: [] },
+    priceOut:    { decimals: 2, triggers: [] },
+    eTillgodo:   { decimals: 1, triggers: ['updateESalj'] },
+    inflation:   { decimals: 1, triggers: [] },
+    degradation: { decimals: 0, triggers: [] },
+  };
+
+  document.addEventListener('DOMContentLoaded', () => {
+    Object.entries(fieldConfig).forEach(([id, cfg]) => {
+      const input = document.getElementById(id);
+      if (input.dataset.default) input.value = input.dataset.default;
+
+      input.addEventListener('blur', () => {
+        formatInputOnBlur(input, cfg.decimals);
+        clearError(id);
+      });
+      input.addEventListener('focus', () => stripFormatOnFocus(input));
+      input.addEventListener('input', () => {
+        cfg.triggers.forEach(fn => window[fn]());
+      });
+    });
+  });
+
+  // ═══════════════════════════════════════════
+  // Theme
+  // ═══════════════════════════════════════════
+
+  function setTheme(name) {
+    const map = {
+      nordisk: '', solcell: 'solcell', blueprint: 'blueprint',
+      koppar: 'koppar', lovverk: 'lovverk',
+      midnatt: 'midnatt', grafit: 'grafit'
+    };
+    document.documentElement.setAttribute('data-theme', map[name] || '');
+    document.querySelectorAll('.theme-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.getAttribute('data-theme-btn') === name);
+    });
+  }
+
+  // ═══════════════════════════════════════════
+  // Auto-calculations
+  // ═══════════════════════════════════════════
+
+  function autoCalcProd() {
+    const kwp = getVal('kwp');
+    const spec = getVal('spec');
+    if (kwp > 0 && spec > 0) {
+      setVal('prod', Math.round(kwp * spec), 0);
+      autoCalcSelfConsumption();
+    }
+  }
+
+  function autoCalcSelfConsumption() {
+    const C = getVal('consumption');
+    const P = getVal('prod');
+    if (C > 0 && P > 0) {
+      setVal('eTillgodo', (1 - Math.exp(-C / P)) * 100, 1);
+      updateESalj();
+    }
+  }
+
+  function updateESalj() {
+    const et = getVal('eTillgodo');
+    const display = document.getElementById('eSaljDisplay');
+    display.textContent = (!isNaN(et) && et >= 0 && et <= 100)
+      ? fmtSv(100 - et, 1) + ' %' : '—';
+  }
+
+  // ═══════════════════════════════════════════
+  // Validation
+  // ═══════════════════════════════════════════
+
+  function showError(id, msg) {
+    const el = document.getElementById(id + '-error');
+    const input = document.getElementById(id);
+    if (el) { el.textContent = msg; el.classList.add('visible'); }
+    if (input) input.classList.add('input-error');
+  }
+
+  function clearError(id) {
+    const el = document.getElementById(id + '-error');
+    const input = document.getElementById(id);
+    if (el) { el.textContent = ''; el.classList.remove('visible'); }
+    if (input) input.classList.remove('input-error');
+  }
+
+  function clearAllErrors() {
+    document.querySelectorAll('.error-msg').forEach(el => { el.textContent = ''; el.classList.remove('visible'); });
+    document.querySelectorAll('.input-error').forEach(el => el.classList.remove('input-error'));
+  }
+
+  function validate() {
+    clearAllErrors();
+    let ok = true;
+    if (isNaN(getVal('prod')) || getVal('prod') <= 0) { showError('prod', 'Ange förväntad årsproduktion.'); ok = false; }
+    if (isNaN(getVal('invest')) || getVal('invest') <= 0) { showError('invest', 'Ange investeringskostnad.'); ok = false; }
+    if (isNaN(getVal('consumption')) || getVal('consumption') <= 0) { showError('consumption', 'Ange total förbrukning.'); ok = false; }
+    const et = getVal('eTillgodo');
+    if (isNaN(et) || et < 0 || et > 100) { showError('eTillgodo', 'E_tillgodo måste vara mellan 0 och 100%.'); ok = false; }
+    return ok;
+  }
+
+  // ═══════════════════════════════════════════
+  // Main Calculation
+  // ═══════════════════════════════════════════
+
+  function calculate() {
+    if (!validate()) return;
+
+    const prodYear0 = getVal('prod');
+    const investCost = getVal('invest');
+    const priceIn0 = getVal('priceIn');
+    const priceOut0 = getVal('priceOut');
+    const eTillgodoFrac = getVal('eTillgodo') / 100;
+    const eSaljFrac = 1 - eTillgodoFrac;
+    const inflation = getVal('inflation') / 100;
+    const deg25 = getVal('degradation');
+    const dPerYear = (100 - deg25) / 25;
+
+    const rows = [];
+    let cumCF = -investCost;
+    let totRev = 0, totProd = 0, totRet = 0;
+    let paybackYear = null;
+
+    for (let n = 1; n <= 30; n++) {
+      const pIn = priceIn0 * Math.pow(1 + inflation, n);
+      const pOut = priceOut0 * Math.pow(1 + inflation, n);
+      const rem = (100 - dPerYear * n) / 100;
+      const yProd = prodYear0 * rem;
+      const selfP = yProd * eTillgodoFrac;
+      const surp = yProd * eSaljFrac;
+      const rev = (selfP * pIn) + (surp * pOut);
+      const annRet = (rev / investCost) * 100;
+
+      cumCF += rev;
+      totRev += rev;
+      totProd += yProd;
+      totRet += annRet;
+
+      if (paybackYear === null && cumCF > 0) paybackYear = n;
+
+      rows.push({ year: n, pIn, pOut, yProd, selfP, surp, rev, annRet, cf: cumCF, isPB: paybackYear === n });
+    }
+
+    const netProfit = totRev - investCost;
+    const co2 = totProd * 0.08 / 1000;
+
+    // Summary
+    document.getElementById('summaryGrid').innerHTML =
+        sItem('Investeringskostnad', fmtSv(investCost, 0), 'kr', false)
+      + sItem('Totala intäkter 30 år', fmtSv(Math.round(totRev), 0), 'kr', false)
+      + sItem('Nettovinst', fmtSv(Math.round(netProfit), 0), 'kr', netProfit > 0)
+      + sItem('Total avkastning 30 år', fmtSv(totRet, 1), '%', false)
+      + sItem('Återbetalningstid', paybackYear ? paybackYear : '> 30', 'år', !!paybackYear)
+      + sItem('Total produktion 30 år', fmtSv(Math.round(totProd), 0), 'kWh', false)
+      + sItem('CO₂-besparing', fmtSv(co2, 1), 'ton', false);
+
+    // Table
+    document.getElementById('tableBody').innerHTML = rows.map(r => `
+      <tr class="${r.isPB ? 'payback-row' : ''}">
+        <td>${r.year}</td>
+        <td>${fmtSv(r.pIn, 2)}</td>
+        <td>${fmtSv(r.pOut, 2)}</td>
+        <td>${fmtSv(Math.round(r.yProd), 0)}</td>
+        <td>${fmtSv(Math.round(r.selfP), 0)}</td>
+        <td>${fmtSv(Math.round(r.surp), 0)}</td>
+        <td>${fmtSv(Math.round(r.rev), 0)}</td>
+        <td>${fmtSv(r.annRet, 1)}</td>
+        <td>${fmtSv(Math.round(r.cf), 0)}</td>
+      </tr>
+    `).join('');
+
+    // Print parameters
+    document.getElementById('printParams').innerHTML = `<table>
+      <tr><td>Installerad effekt</td><td>${document.getElementById('kwp').value} kWp</td></tr>
+      <tr><td>Förväntad årsproduktion</td><td>${document.getElementById('prod').value} kWh</td></tr>
+      <tr><td>Investeringskostnad</td><td>${document.getElementById('invest').value} kr</td></tr>
+      <tr><td>Total förbrukning</td><td>${document.getElementById('consumption').value} kWh</td></tr>
+      <tr><td>Elpris inköp</td><td>${document.getElementById('priceIn').value} kr/kWh</td></tr>
+      <tr><td>Försäljningspris el</td><td>${document.getElementById('priceOut').value} kr/kWh</td></tr>
+      <tr><td>E_tillgodo</td><td>${document.getElementById('eTillgodo').value} %</td></tr>
+      <tr><td>Elprisinflation</td><td>${document.getElementById('inflation').value} %/år</td></tr>
+      <tr><td>Degradering vid 25 år</td><td>${document.getElementById('degradation').value} %</td></tr>
+    </table>`;
+
+    document.getElementById('results').classList.add('visible');
+    document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
+  }
+
+  function sItem(label, value, unit, hl) {
+    return `<div class="summary-item ${hl ? 'highlight-item' : ''}">
+      <div class="summary-label">${label}</div>
+      <div class="summary-value">${value} <span class="summary-unit">${unit}</span></div>
+    </div>`;
+  }
+
+  // ═══════════════════════════════════════════
+  // PDF Export (via Print)
+  // ═══════════════════════════════════════════
+
+  function exportPDF() {
+    window.print();
+  }
+
+  // ═══════════════════════════════════════════
+  // Reset
+  // ═══════════════════════════════════════════
+
+  function resetAll() {
+    Object.keys(fieldConfig).forEach(id => {
+      const input = document.getElementById(id);
+      input.value = input.dataset.default || '';
+    });
+    document.getElementById('eSaljDisplay').textContent = '—';
+    clearAllErrors();
+    document.getElementById('results').classList.remove('visible');
+    window.scrollTo({ top: 0, behavior: 'smooth' });
+  }
+</script>
+</body>
+</html>
