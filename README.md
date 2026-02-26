@@ -1,6 +1,7 @@
 # ☀ Solcellskalkyl — Flerbostadshus
 
 Ekonomisk investeringsanalys för solceller till flerbostadshus — 30-årsberäkning.
+**[Länk till verktyg →]([https://dimfield-git.github.io/solcellsber/tod-architecture.html](https://github.com/dimfield-git/solcellskalkyl/blob/main/index.html)**
 
 ## Syfte
 
