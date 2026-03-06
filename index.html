@@ -635,6 +635,41 @@
     font-style: italic;
   }
 
+  /* ── Input Params Table ── */
+  .params-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .params-table td {
+    padding: 8px 14px;
+    font-size: 13px;
+    border-bottom: 1px solid var(--border);
+  }
+
+  .params-table td:first-child {
+    font-weight: 600;
+    color: var(--text);
+    width: 55%;
+  }
+
+  .params-table td:last-child {
+    font-family: "SF Mono", "Cascadia Mono", "Consolas", "DejaVu Sans Mono", monospace;
+    text-align: right;
+    color: var(--text);
+  }
+
+  .params-table tr.section-row td {
+    font-weight: 700;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--table-header-text);
+    background: var(--table-header-bg);
+    padding: 8px 14px;
+    border-bottom: none;
+  }
+
   .footer {
     text-align: center;
     padding: 32px 0 0;
@@ -783,15 +818,15 @@
     <div class="card-title">Beräknade parametrar</div>
     <div class="form-grid">
       <div class="form-group">
-        <label>E_tillgodo <span class="unit">(%)</span></label>
+        <label>Egenförbrukning <span class="unit">(%)</span></label>
         <input type="text" id="eTillgodo" inputmode="decimal" placeholder="Beräknas automatiskt">
-        <span class="help-text">Andel egenproducerad el som tillgodoser föreningens behov. Modell: α × (1 − e<sup>−C/P</sup>)</span>
+        <span class="help-text">Andel producerad solel som föreningen tillgodogör sig. Modell: α × (1 − e<sup>−C/P</sup>)</span>
         <span class="error-msg" id="eTillgodo-error"></span>
       </div>
       <div class="form-group">
-        <label>E_sälj <span class="unit">(%)</span></label>
+        <label>Överskottsandel <span class="unit">(%)</span></label>
         <div class="computed-row" id="eSaljDisplay">—</div>
-        <span class="computed-label">Auto: 100% − E_tillgodo</span>
+        <span class="computed-label">Auto: 100% − Egenförbrukning</span>
       </div>
       <div class="form-group">
         <label>Takfaktor α <span class="unit">(0–1)</span></label>
@@ -829,11 +864,19 @@
     <div class="print-params" id="printParams"></div>
 
     <div class="results-actions">
+      <button class="btn-export" onclick="exportPNG('inputParamsCard')">⬇ Indata (PNG)</button>
       <button class="btn-export" onclick="exportPNG('summaryCard')">⬇ Sammanfattning (PNG)</button>
       <button class="btn-export" onclick="exportPNG('tableCard')">⬇ Årstabell (PNG)</button>
     </div>
 
-    <div class="card result-card" id="summaryCard" style="margin-top: 0;">
+    <div class="card result-card" id="inputParamsCard" style="margin-top: 0;">
+      <div class="card-title">Indata — Parametrar</div>
+      <table class="params-table">
+        <tbody id="inputParamsBody"></tbody>
+      </table>
+    </div>
+
+    <div class="card result-card" id="summaryCard">
       <div class="card-title">Resultat — Sammanfattning</div>
       <div class="summary-grid" id="summaryGrid"></div>
       <p class="co2-ref">CO₂-referens: Svensk residualmix, ca 80 g CO₂/kWh (0,08 ton/MWh). Källa: Energimyndigheten.</p>
@@ -863,7 +906,7 @@
   </div>
 
   <div class="footer">
-    Solcellskalkyl för flerbostadshus — Enkel modell v1.4 — 2025
+    Solcellskalkyl för flerbostadshus — Enkel modell v1.5 — 2026
   </div>
 
 </div>
@@ -1037,7 +1080,7 @@
     if (isNaN(getVal('invest')) || getVal('invest') <= 0) { showError('invest', 'Ange investeringskostnad.'); ok = false; }
     if (isNaN(getVal('consumption')) || getVal('consumption') <= 0) { showError('consumption', 'Ange total förbrukning.'); ok = false; }
     const et = getVal('eTillgodo');
-    if (isNaN(et) || et < 0 || et > 100) { showError('eTillgodo', 'E_tillgodo måste vara mellan 0 och 100%.'); ok = false; }
+    if (isNaN(et) || et < 0 || et > 100) { showError('eTillgodo', 'Egenförbrukning måste vara mellan 0 och 100%.'); ok = false; }
     return ok;
   }
 
@@ -1111,20 +1154,26 @@
       </tr>
     `).join('');
 
-    // Print parameters
-    document.getElementById('printParams').innerHTML = `<table>
-      <tr><td>Installerad effekt</td><td>${document.getElementById('kwp').value} kWp</td></tr>
+    // Input parameters table
+    const isCollective = document.getElementById('collectiveToggle').checked;
+    document.getElementById('inputParamsBody').innerHTML = `
+      <tr class="section-row"><td colspan="2">Offertdata</td></tr>
+      <tr><td>Total installerad effekt</td><td>${document.getElementById('kwp').value} kWp</td></tr>
+      <tr><td>Specifik årsproduktion</td><td>${document.getElementById('spec').value} kWh/kWp</td></tr>
       <tr><td>Förväntad årsproduktion</td><td>${document.getElementById('prod').value} kWh</td></tr>
       <tr><td>Investeringskostnad</td><td>${document.getElementById('invest').value} kr</td></tr>
-      <tr><td>Kollektiv egenförbrukning</td><td>${document.getElementById('collectiveToggle').checked ? 'Ja' : 'Nej'}</td></tr>
+      <tr class="section-row"><td colspan="2">Årsredovisningsdata</td></tr>
+      <tr><td>Kollektiv egenförbrukning</td><td>${isCollective ? 'Ja' : 'Nej'}</td></tr>
       <tr><td>Total förbrukning</td><td>${document.getElementById('consumption').value} kWh</td></tr>
       <tr><td>Elpris inköp</td><td>${document.getElementById('priceIn').value} kr/kWh</td></tr>
       <tr><td>Försäljningspris el</td><td>${document.getElementById('priceOut').value} kr/kWh</td></tr>
+      <tr class="section-row"><td colspan="2">Beräknade parametrar</td></tr>
+      <tr><td>Egenförbrukning</td><td>${document.getElementById('eTillgodo').value} %</td></tr>
+      <tr><td>Överskottsandel</td><td>${fmtSv(100 - getVal('eTillgodo'), 1)} %</td></tr>
       <tr><td>Takfaktor α</td><td>${document.getElementById('alpha').value}</td></tr>
-      <tr><td>E_tillgodo</td><td>${document.getElementById('eTillgodo').value} %</td></tr>
       <tr><td>Elprisinflation</td><td>${document.getElementById('inflation').value} %/år</td></tr>
       <tr><td>Degradering vid 25 år</td><td>${document.getElementById('degradation').value} %</td></tr>
-    </table>`;
+    `;
 
     document.getElementById('results').classList.add('visible');
     document.getElementById('results').scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1171,7 +1220,11 @@
     });
 
     const link = document.createElement('a');
-    link.download = elementId === 'summaryCard' ? 'solcellskalkyl_sammanfattning.png' : 'solcellskalkyl_arstabell.png';
+    link.download = {
+      summaryCard: 'solcellskalkyl_sammanfattning.png',
+      tableCard: 'solcellskalkyl_arstabell.png',
+      inputParamsCard: 'solcellskalkyl_indata.png'
+    }[elementId] || 'solcellskalkyl_export.png';
     link.href = canvas.toDataURL('image/png');
     link.click();
   }
