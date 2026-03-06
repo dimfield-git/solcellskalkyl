@@ -5,7 +5,7 @@ Ekonomisk investeringsanalys för solceller till flerbostadshus — 30-årsberä
 
 ## Syfte
 
-Verktyg för energikonsulter som gör solcellskalkyler åt bostadsrättsföreningar. En enda HTML-fil som fungerar offline utan externa beroenden.
+Verktyg för solcellskalkyler i flerbostadshus. En enda HTML-fil som fungerar offline utan externa beroenden.
 
 ## Användning
 
